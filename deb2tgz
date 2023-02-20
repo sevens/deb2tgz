@@ -101,7 +101,14 @@ for debfile in $* ; do
 
         if [ -f "$TMPDIR/data.tar.zst" ]
         then
-          zstdcat $TMPDIR/data.tar.zst | xz --compress - > $CURRDIR/$(basename $debfile .deb).txz
+          # Use same threading logic for `xz` as `makepkg` does by default
+          if [[ "$(uname -m)" =~ (x86_64|aarch64|riscv64) ]]
+          then
+            THREADS=0
+          else
+            THREADS=2
+          fi
+          pzstd --decompress --stdout $TMPDIR/data.tar.zst | xz --compress --threads=$THREADS - > $CURRDIR/$(basename $debfile .deb).txz
           rm "$TMPDIR/data.tar.zst"
         fi
     fi
