@@ -79,27 +79,24 @@ for debfile in $* ; do
 
     # Repack the files in the right archive:
     if [ "`basename $0`" = "deb2tgz" ]; then
+
         if [ -f "$TMPDIR/data.tar.gz" ]
         then
           mv $TMPDIR/data.tar.gz $CURRDIR/$(basename $debfile .deb).tgz
-        fi
 
-        if [ -f "$TMPDIR/data.tar.xz" ]
+        elif [ -f "$TMPDIR/data.tar.xz" ]
         then
           mv $TMPDIR/data.tar.xz $CURRDIR/$(basename $debfile .deb).txz
-        fi
 
-        if [ -f "$TMPDIR/data.tar.bz2" ]
+        elif [ -f "$TMPDIR/data.tar.bz2" ]
         then
           mv $TMPDIR/data.tar.bz2 $CURRDIR/$(basename $debfile .deb).tbz
-        fi
 
-        if [ -f "$TMPDIR/data.tar.lzma" ]
+        elif [ -f "$TMPDIR/data.tar.lzma" ]
         then
           mv $TMPDIR/data.tar.lzma $CURRDIR/$(basename $debfile .deb).tlz
-        fi
 
-        if [ -f "$TMPDIR/data.tar.zst" ]
+        elif [ -f "$TMPDIR/data.tar.zst" ]
         then
           # Use same threading logic for `xz` as `makepkg` does by default
           if [[ "$(uname -m)" =~ (x86_64|aarch64|riscv64) ]]
@@ -110,7 +107,13 @@ for debfile in $* ; do
           fi
           pzstd --decompress --stdout $TMPDIR/data.tar.zst | xz --compress --threads=$THREADS - > $CURRDIR/$(basename $debfile .deb).txz
           rm "$TMPDIR/data.tar.zst"
-        fi
+
+       else
+         echo "ERROR:  unsupported compression format used inside DEB file ($(basename "$TMPDIR"/data.tar.*))."
+         exit 1
+
+       fi
+
     fi
 
     # Remove temporary directory:
